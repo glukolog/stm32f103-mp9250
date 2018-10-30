@@ -1,0 +1,5 @@
+--------------
+make lib
+make
+make install
+--------------
