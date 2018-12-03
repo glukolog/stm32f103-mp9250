@@ -69,7 +69,7 @@ LDSCRIPT   = STM32F103X8.ld
 LDFLAGS += --specs=nosys.specs
 LDFLAGS += -mthumb -mcpu=cortex-m3 -msoft-float -mfpu=vfp
 #LDFLAGS += -Wl,--gc-sections
-LDFLAGS += -lgcc -lc -lm -Wl,--start-group -Wl,--gc-sections -lnosys
+LDFLAGS += -lgcc -lm -Wl,--start-group -Wl,--gc-sections -lnosys
 #LDFLAGS += -Lld-scripts
 LDFLAGS += -T$(LDSCRIPT)
 

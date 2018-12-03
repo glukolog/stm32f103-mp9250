@@ -15,7 +15,7 @@
 //#include "stm32f10x.h"
 //#include "stm32f10x_it.h"
 //#include "stm32f10x_spi.h"
-#include <stdio.h>
+//#include <stdio.h>
 #include <stm32f10x.h>
 #include "u8g2.h"
 //#include "u8g2-master\csrc\u8x8.h"

@@ -2,10 +2,14 @@
 //#include "stm32f10x_it.h"
 //#include "stm32f10x_gpio.h"
 //#include "stm32f10x_rcc.h"
-#include <stdio.h>
+//#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+
+#include "printf.h"
+
+#define putchar _putchar
 
 #include "systick.h"
 
@@ -101,6 +105,11 @@ void NVIC_Configuration(void)
   NVIC_Init(&NVIC_InitStructure);
 }
 
+void _putchar(char ch) {
+  USART_SendData(USART1, (uint8_t) ch);
+  while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET) {}
+}
+
 int MyLowLevelPutchar(int ch)
 {
   /* Place your implementation of fputc here */
@@ -112,7 +121,7 @@ int MyLowLevelPutchar(int ch)
 
   return 0;
 }
-
+/*
 int _write(int file, char *data, int len)
 {
     int bytes_written;
@@ -132,7 +141,7 @@ int _write(int file, char *data, int len)
 
     return bytes_written;
 }
-
+*/
 uint8_t getch(void) {
     if (RxCounter1) return(RxBuffer1[--RxCounter1]);
     return(0);
@@ -447,11 +456,12 @@ int main() {
 #ifndef I2C_SOFT
     I2C1_init();
 #endif
+/*
     setvbuf(stdin, NULL, _IONBF, 0);
     setvbuf(stdout, NULL, _IONBF, 0);
     setvbuf(stderr, NULL, _IONBF, 0);
     // turn off buffers, so IO occurs immediately
-
+*/
     printf("MP-9250!\r\n");
     printf("Last: %X\r\n", I2C_GetLastEvent(I2C1));
     u8g2_start();

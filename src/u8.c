@@ -1,5 +1,6 @@
 //#include <stdint.h>
 #include "u8.h"
+#include "printf.h"
 //#include "stm32f10x_spi.h"
 //#include "SysTick.h"
 
