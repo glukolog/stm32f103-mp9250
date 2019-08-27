@@ -89,15 +89,9 @@ $(TARGET).hex: $(TARGET).elf
 	@echo "---------------------------------------------------"
 	@$(SZ) $(TARGET).elf
 
-# Линковка
-#-------------------------------------------------------------------------------
-$(TARGET).elf: $(OBJS)
-	@echo $(LD)  $^ -o $@ $(LDFLAGS) -Lout -l$(SPL_NAME) -lu8g2
-	@$(LD)  $^ -o $@ $(LDFLAGS) -Lout -l$(SPL_NAME) -lu8g2 -Wl,-Map,$(TARGET).map
-
 lib: $(LIB_OBJS)
 	@echo $(AR) -r out/lib$(SPL_NAME).a $(LIB_OBJS)
-	$(AR) -r out/lib$(SPL_NAME).a $(LIB_OBJS)
+	$(AR) -rcs out/lib$(SPL_NAME).a $(LIB_OBJS)
 	$(RM) $(LIB_OBJS)
 #	$(RM) $(LIB_DEPS)
 
@@ -108,6 +102,20 @@ u8g2: $(U8G2_OBJS)
 	@echo $(AR) -r out/libu8g2.a $(U8G2_OBJS)
 	$(AR) -r out/libu8g2.a $(U8G2_OBJS)
 	$(RM) $(U8G2_OBJS)
+
+# Линковка
+#-------------------------------------------------------------------------------
+#$(TARGET).elf: $(OBJS)
+$(TARGET).elf: $(OBJS) $(U8G2_OBJS) $(LIB_OBJS)
+	@echo $(LD)  $^ -o $@ $(LDFLAGS) -Lout -l$(SPL_NAME) -lu8g2
+#	@$(LD)  $^ -o $@ $(LDFLAGS) -Lout -l$(SPL_NAME) -lu8g2 -Wl,-Map,$(TARGET).map
+	@$(LD)  $^ -o $@ $(LDFLAGS) -Wl,-Map,$(TARGET).map
+
+#$(TARGET).elf: $(OBJS)
+lib.elf: $(OBJS) $(U8G2_OBJS) 
+	@echo $(LD)  $^ -o $@ $(LDFLAGS) -Lout -l$(SPL_NAME) -lu8g2
+	@$(LD)  $^ -o $@ $(LDFLAGS) -Lout -l$(SPL_NAME) -Wl,-Map,$(TARGET).map
+#	@$(LD)  $^ -o $@ $(LDFLAGS) -Wl,-Map,$(TARGET).map
 
 %.o: %.c
 	@echo $(CC) $(CFLAGS) -c $< -o $@
@@ -122,6 +130,9 @@ clean:
 	@$(RM) -f out/$(TARGET).*
 	@$(RM) -f $(OBJS)
 	@$(RM) -f $(patsubst %.s, %.o, $(STARTUP))
+
+echo:
+	@echo $(OBJS)
 
 # Сгенерированные gcc зависимости
 #-------------------------------------------------------------------------------

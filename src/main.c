@@ -28,6 +28,7 @@
 u8g2_t u8g2;
 char s[80];
 uint16_t qs = 0, tqs = 0;
+uint16_t barx = 0, bar[64] = {0};
 float temp=0, pres;
 uint8_t screen = 2;
 
@@ -371,7 +372,7 @@ void MP9250_ReadValues() {
 }
 
 void u8g2_start() {
-    u8g2_Setup_st7920_s_128x64_f(&u8g2, U8G2_R2, u8x8_byte_3wire_hw_spi, u8g2_gpio_and_delay_stm32);
+    u8g2_Setup_st7920_s_128x64_f(&u8g2, U8G2_R3, u8x8_byte_3wire_hw_spi, u8g2_gpio_and_delay_stm32);
     u8g2_InitDisplay(&u8g2);
     u8g2_SetPowerSave(&u8g2, 0);
 //    u8g2_SetFont(&u8g2, u8g2_font_6x10_mr);
@@ -419,9 +420,9 @@ void Screen_Dev2() {
     //printf("gx = %.3f\t", gx); printf(" gy = %.3f\t", gy); printf(" gz = %.3f  deg/s\n\r", gz);
     //printf("mx = %.3f\t", mx); printf(" my = %.3f\t", my); printf(" mz = %.3f  mG\n\r", mz);
 
-    sprintf(s, " %.3f", MF.x); u8g2_DrawStr(&u8g2, 38 - u8g2_GetStrWidth(&u8g2, s), 20, s);
-    sprintf(s, " %.3f", MF.y); u8g2_DrawStr(&u8g2, 38 - u8g2_GetStrWidth(&u8g2, s), 30, s);
-    sprintf(s, " %.3f", MF.z); u8g2_DrawStr(&u8g2, 38 - u8g2_GetStrWidth(&u8g2, s), 40, s);
+    sprintf(s, " %.2f", MF.x); u8g2_DrawStr(&u8g2, 40 - u8g2_GetStrWidth(&u8g2, s), 20, s);
+    sprintf(s, " %.2f", MF.y); u8g2_DrawStr(&u8g2, 40 - u8g2_GetStrWidth(&u8g2, s), 30, s);
+    sprintf(s, " %.2f", MF.z); u8g2_DrawStr(&u8g2, 40 - u8g2_GetStrWidth(&u8g2, s), 40, s);
 
     sprintf(s, "MF=%.2f ", sqrt(MF.x*MF.x+MF.y*MF.y+MF.z*MF.z)); u8g2_DrawStr(&u8g2, 0, 55, s);
     sprintf(s, "G=%.3f M=%.1f mG", sqrt(ax*ax+ay*ay+az*az), sqrt(mx*mx+my*my+mz*mz)); u8g2_DrawStr(&u8g2, 0, 63, s);
@@ -440,10 +441,63 @@ void Screen_Dev2() {
     u8g2_DrawLine(&u8g2, 106, 32, 106 + MF.y, 32 - MF.z);
 }
 
+#define c1x	16
+#define c1y	50
+#define c2x	47
+#define c2y	50
+#define crr	16
+void Screen_Dev2v() {
+    float l;
+    int i, b;
+
+    u8g2_ClearBuffer(&u8g2);
+    u8g2_DrawStr(&u8g2, 0, 8, "Magnet Dt");
+    u8g2_DrawStr(&u8g2, 0, 16, "X");
+    u8g2_DrawStr(&u8g2, 0, 24, "Y");
+    u8g2_DrawStr(&u8g2, 0, 32, "Z");
+
+    // Serial print and/or display at 0.5 s rate independent of data rates
+    //printf("ax = %.3f\t", 1000*ax); printf(" ay = %.3f\t", 1000*ay); printf(" az = %.3f  mg\n\r", 1000*az);
+    //printf("gx = %.3f\t", gx); printf(" gy = %.3f\t", gy); printf(" gz = %.3f  deg/s\n\r", gz);
+    //printf("mx = %.3f\t", mx); printf(" my = %.3f\t", my); printf(" mz = %.3f  mG\n\r", mz);
+
+    sprintf(s, " %.2f", MF.x); u8g2_DrawStr(&u8g2, 40 - u8g2_GetStrWidth(&u8g2, s), 16, s);
+    sprintf(s, " %.2f", MF.y); u8g2_DrawStr(&u8g2, 40 - u8g2_GetStrWidth(&u8g2, s), 24, s);
+    sprintf(s, " %.2f", MF.z); u8g2_DrawStr(&u8g2, 40 - u8g2_GetStrWidth(&u8g2, s), 32, s);
+
+    sprintf(s, "MF=%.2f ", sqrt(MF.x*MF.x+MF.y*MF.y+MF.z*MF.z)); u8g2_DrawStr(&u8g2, 0, 84, s);
+    sprintf(s, "G=%.3f", sqrt(ax*ax+ay*ay+az*az)); u8g2_DrawStr(&u8g2, 0, 92, s);
+    sprintf(s, "M=%.1f mG", sqrt(mx*mx+my*my+mz*mz)); u8g2_DrawStr(&u8g2, 0, 100, s);
+
+    u8g2_DrawCircle(&u8g2, c1x, c1y, crr, U8G2_DRAW_ALL);
+    u8g2_DrawCircle(&u8g2, c2x, c2y, crr, U8G2_DRAW_ALL);
+
+    l = sqrt(MF.x*MF.x + MF.y*MF.y + MF.z*MF.z);
+    b = l * 30.0f;
+    //l = (l > 0.16f) ? 16.0f / l : 100.0f;
+    l = (l < 1.0f) ? 16.0f : 16.0f / l;
+    //l = 100;
+    MF.x *= l;
+    MF.y *= l;
+    MF.z *= l;
+
+    u8g2_DrawLine(&u8g2, c1x, c1y, c1x + MF.x, c1y - MF.y);
+    u8g2_DrawLine(&u8g2, c2x, c2y, c2x + MF.y, c2y - MF.z);
+
+    //u8g2_SetDrawColor(&u8g2, 0);
+    //u8g2_DrawLine(&u8g2, barx, 110, barx, 127);
+    //u8g2_SendBuffer(&u8g2);
+    //u8g2_SetDrawColor(&u8g2, 1);
+    //u8g2_DrawLine(&u8g2, barx, 127 - l, barx, 127);
+    for(i = 0; i < 64 ; i++) u8g2_DrawLine(&u8g2, i, 127 - bar[i], i, 127);
+    bar[barx] = b;
+    barx++; if (barx > 63) barx = 0;
+    u8g2_DrawLine(&u8g2, barx, 100, barx, 127);
+}
 
 int main() {
     int i;
-    uint8_t pause;//, buf[128]={0};
+    uint8_t pause = 0;//, buf[128]={0};
     uint32_t t0 = 0;
 
     SysTickInit(1000);
@@ -552,7 +606,7 @@ int main() {
             //printf("%.3f\t%.3f\t%.3f\t%.3f\t%.3f\r\n",q[0],q[1],q[2],q[3],q[0]*q[0]+q[1]*q[1]+q[2]*q[2]+q[3]*q[3]);
             //printf("average rate = %f\n\r", (float) sumCount/sum);
 
-            if ((qs % 5) == 0) {
+            if (qs == 0) {
                 memset(&MF, 0, sizeof(MF));
                 for(i = 0 ; i < 10 ; i++) {
                     MF.x += VM[i].x;
@@ -561,7 +615,7 @@ int main() {
                 }
                 switch (screen) {
                 case 1: Screen_Dev1(); break;
-                case 2: Screen_Dev2(); break;
+                case 2: Screen_Dev2v(); break;
                 default:
                     break;
                 }
@@ -578,9 +632,9 @@ int main() {
         while (RxCounter1) {
             char c = getch();
             switch (c) {
-            case '1' : screen = 1; break;
-            case '2' : screen = 2; break;
-            case 'p' : pause ^= 1; break;
+            //case '1' : screen = 1; break;
+            //case '2' : screen = 2; break;
+            //case 'p' : pause ^= 1; break;
             default : putchar(c); break;
             }
         }
